@@ -43,7 +43,7 @@ body {
 	flex-direction: column;
 	justify-content: center;
 	align-items: center;
-	visibility: hidden;
+	visibility: hidden; /* Hide the status div */
 }
 
 #status-splash {
@@ -103,7 +103,7 @@ body {
 			Your browser does not support JavaScript.
 		</noscript>
 
-		<div id="status">
+		<div id="status" style="display: none;"> <!-- Hide the loading screen div -->
 			<img id="status-splash" class="show-image--true fullsize--true use-filter--true" src="Platformer3DDemo.png" alt="">
 			<progress id="status-progress"></progress>
 			<div id="status-notice"></div>
@@ -217,4 +217,3 @@ const engine = new Engine(GODOT_CONFIG);
 		</script>
 	</body>
 </html>
-
