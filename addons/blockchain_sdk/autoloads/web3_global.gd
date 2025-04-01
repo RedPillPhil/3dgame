@@ -85,18 +85,29 @@ func connect_wallet():
 		print("Wallet connection only available in web builds")
 		return
 	
-	# Attempt to connect with MetaMask
+	# Start the MetaMask connection request
 	var script = """
-		ethereum.request({ method: 'eth_requestAccounts' }).then(accounts => accounts[0]).catch(() => 'error');
+		ethereum.request({ method: 'eth_requestAccounts' }).then(accounts => {
+			if (accounts.length > 0) {
+				return accounts[0];  // Return the first account
+			} else {
+				return 'No account found';  // If no accounts, return a message
+			}
+		}).catch(() => 'error');  // In case of error, return 'error'
 	"""
+	
+	# Call the JavaScript Bridge to execute the MetaMask script
 	var result = JavaScriptBridge.eval(script)
 
-	# Add a delay to wait for MetaMask's response (simulate async behavior)
+	# Check if we have a valid result
 	if result != null:
+		# If result is "error", show failed message
 		if result == "error":
-			# Wallet connection failed
 			print("Wallet connection failed.")
 			status_label.text = "Failed."
+		elif result == "No account found":
+			print("No account found.")
+			status_label.text = "No account found."
 		else:
 			# Successfully connected
 			wallet_address = result
