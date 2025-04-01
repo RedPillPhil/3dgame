@@ -1,12 +1,12 @@
-[gd_scene load_steps=12 format=3 uid="uid://d0lrpf3mmjdsx"]
+[gd_scene load_steps=12 format=3 uid="uid://b781i7n04pn4v"]
 
 [ext_resource type="PackedScene" uid="uid://dohp772jyjxb7" path="res://stage/stage.tscn" id="1_ybvw5"]
 [ext_resource type="PackedScene" uid="uid://dfxo2jwbj4aeh" path="res://coin/coin.tscn" id="2_chew2"]
 [ext_resource type="PackedScene" uid="uid://o5q0hy6cg6nt" path="res://enemy/enemy.tscn" id="3_nhwvs"]
 [ext_resource type="PackedScene" uid="uid://cc4idhykjp5f5" path="res://player/player.tscn" id="4_ray4s"]
-[ext_resource type="ArrayMesh" uid="uid://cftem3h8xuf27" path="res://addons/abi_importer/PSX Tech - Demo/PSX Tech - Demo/Models/other-formats/OBJ/Tv.obj" id="5_ryrav"]
+[ext_resource type="ArrayMesh" path="res://addons/abi_importer/PSX Tech - Demo/PSX Tech - Demo/Models/other-formats/OBJ/Tv.obj" id="5_ryrav"]
 [ext_resource type="ArrayMesh" uid="uid://771v7kinfk43" path="res://addons/kaykit_furniture_bits/Assets/obj/table_medium_long.obj" id="6_eow3j"]
-[ext_resource type="Script" uid="uid://bvkwv2cl8y8bd" path="res://tv.gd" id="6_j5wjh"]
+[ext_resource type="Script" path="res://tv.gd" id="6_j5wjh"]
 
 [sub_resource type="PhysicsMaterial" id="1"]
 friction = 0.0

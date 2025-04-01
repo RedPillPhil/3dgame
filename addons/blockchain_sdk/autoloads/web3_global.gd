@@ -46,13 +46,13 @@ func create_popup_menu():
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 
 	var button_yes = Button.new()
-	button_yes.text = "Yes"
+	button_yes.text = "boob"
 	button_yes.set_size(Vector2(100, 40))
 	button_yes.position = Vector2(25, 60)
 	button_yes.connect("pressed", _on_connect_wallet_pressed)
 
 	var button_no = Button.new()
-	button_no.text = "No"
+	button_no.text = "butt"
 	button_no.set_size(Vector2(100, 40))
 	button_no.position = Vector2(130, 60)
 	button_no.connect("pressed", _on_close_popup)
@@ -72,15 +72,19 @@ func create_popup_menu():
 
 	add_child(popup_menu)
 
+# Toggles the popup menu visibility
 func toggle_popup():
 	popup_menu.visible = not popup_menu.visible
 
+# Called when the "Yes" button is pressed
 func _on_connect_wallet_pressed():
 	connect_wallet()
 
+# Called when the "No" button is pressed
 func _on_close_popup():
-	popup_menu.visible = false
+	popup_menu.visible = false  # Close the popup menu immediately
 
+# Connect to the MetaMask wallet
 func connect_wallet():
 	if is_wallet_connected:
 		print("Already connected.")
@@ -88,6 +92,9 @@ func connect_wallet():
 	if not OS.has_feature("web"):
 		emit_signal("wallet_error", "Wallet connection only available in web builds")
 		return
+
+	# Hide the "Yes" and "No" options immediately after clicking
+	popup_menu.visible = false
 
 	# Call JavaScript to connect MetaMask
 	var script = "ethereum.request({ method: 'eth_requestAccounts' }).then(accounts => accounts[0]).catch(console.error);"
@@ -97,8 +104,7 @@ func connect_wallet():
 		wallet_address = result
 		is_wallet_connected = true
 		wallet_address_label.text = "Wallet: " + wallet_address
-		wallet_address_label.visible = true
-		popup_menu.visible = false
+		wallet_address_label.visible = true  # Show the wallet address on the screen
 		emit_signal("wallet_connected", wallet_address)
 	else:
 		print("Wallet connection failed.")
