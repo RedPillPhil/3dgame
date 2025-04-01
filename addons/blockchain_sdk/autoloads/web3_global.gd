@@ -49,13 +49,17 @@ func create_popup_menu():
 	button_yes.text = "boob"
 	button_yes.set_size(Vector2(100, 40))
 	button_yes.position = Vector2(25, 60)
-	button_yes.connect("pressed", _on_connect_wallet_pressed)
+	button_yes.connect("pressed", self, "_on_connect_wallet_pressed")
 
 	var button_no = Button.new()
+<<<<<<< HEAD
 	button_no.text = "butt"
+=======
+	button_no.text = "ass"
+>>>>>>> 847eb5d2300e65f92ae81dffe51ecdd58dbfea32
 	button_no.set_size(Vector2(100, 40))
 	button_no.position = Vector2(130, 60)
-	button_no.connect("pressed", _on_close_popup)
+	button_no.connect("pressed", self, "_on_close_popup")
 
 	# Wallet address label (hidden at first)
 	wallet_address_label = Label.new()
@@ -101,6 +105,7 @@ func connect_wallet():
 	var result = JavaScriptBridge.eval(script)
 
 	if result != null:
+		# Wallet address connected successfully
 		wallet_address = result
 		is_wallet_connected = true
 		wallet_address_label.text = "Wallet: " + wallet_address
