@@ -8,10 +8,8 @@ signal balance_updated(balance: String)
 
 var wallet_address: String = ""
 var is_wallet_connected: bool = false
-var accounts := []
-var wallet_balance := 0
 var popup_menu: Control
-var wallet_address_label: Label  # Store the label for the address
+var wallet_address_label: Label
 
 const SUPPORTED_CHAINS := {
 	"ethereum": "0x1",  # Ethereum Mainnet
@@ -23,174 +21,97 @@ const SUPPORTED_CHAINS := {
 
 var connect_sequence: Sequence
 
+# Setup for when the game is ready
 func _ready():
 	super._ready()
 	create_popup_menu()
 
+# Detect input event
 func _input(event):
 	if event is InputEventKey and event.pressed and event.keycode == KEY_X:
 		toggle_popup()
 
-# Creates a simple popup menu with a white background and text
+# Create the popup menu for wallet connection
 func create_popup_menu():
 	popup_menu = Control.new()
 	popup_menu.set_anchors_preset(Control.PRESET_CENTER)
-	popup_menu.set_size(Vector2(200, 100))
+	popup_menu.set_size(Vector2(250, 120))
 	popup_menu.modulate = Color(1, 1, 1, 1)  # White background
 	popup_menu.visible = false
 
+	# Label asking the user if they want to connect the wallet
 	var label = Label.new()
 	label.text = "Connect Wallet?"
 	label.add_theme_font_size_override("font_size", 20)
-	label.set_anchors_preset(Control.PRESET_CENTER)
-	label.set_alignment(HORIZONTAL_ALIGNMENT_CENTER)
+	label.set_anchors_preset(Control.PRESET_TOP_WIDE)
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 
+	# Yes button
 	var button_yes = Button.new()
 	button_yes.text = "Yes"
-	button_yes.rect_min_size = Vector2(80, 30)
-	button_yes.connect("pressed", self, "_on_yes_pressed")
-	
+	button_yes.set_size(Vector2(100, 40))
+	button_yes.position = Vector2(25, 60)
+	# Connect button signal to the function
+	button_yes.connect("pressed", self, "_on_connect_wallet_pressed")
+
+	# No button
 	var button_no = Button.new()
 	button_no.text = "No"
-	button_no.rect_min_size = Vector2(80, 30)
-	button_no.connect("pressed", self, "_on_no_pressed")
-	
-	button_yes.set_anchors_preset(Control.PRESET_CENTER)
-	button_no.set_anchors_preset(Control.PRESET_CENTER)
-	
-	# Layout buttons in the popup
-	button_yes.rect_position = Vector2(40, 50)  # position the button inside the menu
-	button_no.rect_position = Vector2(40, 80)
-	
+	button_no.set_size(Vector2(100, 40))
+	button_no.position = Vector2(130, 60)
+	# Connect button signal to the function
+	button_no.connect("pressed", self, "_on_close_popup")
+
+	# Wallet address label (hidden initially)
+	wallet_address_label = Label.new()
+	wallet_address_label.add_theme_font_size_override("font_size", 16)
+	wallet_address_label.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
+	wallet_address_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	wallet_address_label.visible = false
+
+	# Add elements to menu
 	popup_menu.add_child(label)
 	popup_menu.add_child(button_yes)
 	popup_menu.add_child(button_no)
+	popup_menu.add_child(wallet_address_label)
 
 	add_child(popup_menu)
 
-# Toggles the popup menu visibility
+# Toggle the visibility of the popup menu
 func toggle_popup():
 	popup_menu.visible = not popup_menu.visible
 
-# What happens if the user clicks "Yes"
-func _on_yes_pressed():
-	connect_wallet()  # This calls the wallet connection logic
-	popup_menu.visible = false  # Hide the popup menu after selection
+# Called when "Yes" is clicked to connect the wallet
+func _on_connect_wallet_pressed():
+	connect_wallet()
 
-# What happens if the user clicks "No"
-func _on_no_pressed():
-	popup_menu.visible = false  # Just hide the popup menu if "No" is selected
+# Called when "No" is clicked to close the popup menu
+func _on_close_popup():
+	popup_menu.visible = false  # Close the popup menu
 
-## Disconnect from the account
-func disconnect_wallet() -> void:
-	wallet_address = ""
-	is_wallet_connected = false
-	emit_signal("wallet_disconnected")
-	accounts.clear()
-
-## Connect to the account
-func connect_wallet() -> void:
+# Connect to MetaMask and retrieve the wallet address
+func connect_wallet():
 	if is_wallet_connected:
-		print("Already connecting to wallet. Please wait.")
+		print("Already connected.")
 		return
 	if not OS.has_feature("web"):
 		emit_signal("wallet_error", "Wallet connection only available in web builds")
 		return
-	is_wallet_connected = true
-	reconnect()
 
-func reconnect():
-	connect_sequence = Sequence.new(_on_reconnect, on_reject)
-	connect_sequence.runasynic(
-		window.ethereum.request(
-			create_jsobj({
-				"method": "wallet_requestPermissions",
-				"params": [{"eth_accounts": {}}]
-			})
-		)
-	)
+	# Hide the popup menu after clicking Yes
+	popup_menu.visible = false
 
-func _on_reconnect(response):
-	connect_sequence.update(set_accounts)
-	connect_sequence.runasynic(
-		window.ethereum.request(
-			create_jsobj({"method": "eth_requestAccounts"})
-		)
-	)
+	# JavaScript call to MetaMask to request account access
+	var script = "ethereum.request({ method: 'eth_requestAccounts' }).then(accounts => accounts[0]).catch(console.error);"
+	var result = JavaScriptBridge.eval(script)
 
-## Setter function (accounts)
-func set_accounts(response_array):
-	accounts.clear()
-	for i in range(response_array.length):
-		accounts.push_back(response_array[i])
-	if accounts.size():
-		wallet_address = accounts[0]
+	# Check if result is valid
+	if result != null:
+		wallet_address = result
 		is_wallet_connected = true
-		emit_signal("wallet_connected", accounts[0])
-		print(accounts)
-		display_wallet_address()  # This now displays the wallet address on the screen
-		get_balance()
-		switch_network("Sei-devnet")
-		connect_sequence.update(initialize_signer)
-		connect_sequence.runasynic(provider.getSigner())
-
-# Display the wallet address on screen
-func display_wallet_address():
-	if not wallet_address_label:
-		# Create the label to display the wallet address if it doesn't exist
-		wallet_address_label = Label.new()
-		wallet_address_label.add_theme_font_size_override("font_size", 18)
-		wallet_address_label.set_anchors_preset(Control.PRESET_TOP_CENTER)
-		wallet_address_label.rect_position = Vector2(0, 20)
-		add_child(wallet_address_label)  # Add the label to the root node
-
-	# Update the label text with the wallet address
-	wallet_address_label.text = "Connected: " + wallet_address
-
-## Get current wallet balance
-func get_balance() -> void:
-	if not is_wallet_connected:
-		emit_signal("connection_failed", "Wallet not connected")  # doesn't exist fix
-		return
-	var balance_sequence = Sequence.new(
-		func(response):
-		var balance = divide_by_pow10(hex_to_decimal_str(response)).pad_decimals(4)
-		wallet_balance = balance.to_float()
-		emit_signal("balance_updated", balance),
-		on_reject,
-		true
-	)
-	balance_sequence.runasynic(
-		window.ethereum.request(
-			create_jsobj({ 
-				"method": 'eth_getBalance',
-				"params": [wallet_address, "latest"]
-			})
-		)
-	)
-
-## Switch network
-func switch_network(chain_name: String) -> void:
-	if not SUPPORTED_CHAINS.has(chain_name):
-		emit_signal("connection_failed", "Unsupported chain")
-		return
-	var chain_id = SUPPORTED_CHAINS[chain_name]
-	var switch_sequence = Sequence.new(
-		func(_args): prints("switched: ", chain_name), on_reject, true
-	)
-	switch_sequence.runasynic(
-		window.ethereum.request(
-			create_jsobj({ 
-				"method": 'wallet_switchEthereumChain',
-				"params": [{"chainId": chain_id}]
-			})
-		)
-	)
-
-## Initialize signer
-func initialize_signer(response):
-	window.signer = response  # check if this is safe
-
-func on_reject():
-	is_wallet_connected = false
-	# Optionally, disconnect_wallet()
+		# Display the wallet address on the screen
+		wallet_address_label.text = "Wallet: " + wallet_address
+		wallet_address_label.visible = true  # Show the wallet address
+		emit_signal("wallet_connected", wallet_address)
+	else:
+		print("Wallet connection failed.")
