@@ -68,6 +68,7 @@ func create_popup_menu():
 	add_child(popup_menu)
 
 func show_popup_menu():
+	# Show the popup menu when triggered
 	popup_menu.visible = true
 
 func _on_connect_wallet_pressed():
@@ -78,6 +79,7 @@ func _on_connect_wallet_pressed():
 	connect_wallet()
 
 func _on_close_popup():
+	# Hide the popup if user selects No
 	popup_menu.visible = false
 
 func connect_wallet():
