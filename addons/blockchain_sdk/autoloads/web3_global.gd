@@ -91,12 +91,14 @@ func connect_wallet():
 	"""
 	var result = JavaScriptBridge.eval(script)
 
-	# Wait for the result asynchronously
+	# Add a delay to wait for MetaMask's response (simulate async behavior)
 	if result != null:
 		if result == "error":
+			# Wallet connection failed
 			print("Wallet connection failed.")
 			status_label.text = "Failed."
 		else:
+			# Successfully connected
 			wallet_address = result
 			is_wallet_connected = true
 			wallet_address_label.text = "Wallet: " + wallet_address
@@ -104,5 +106,6 @@ func connect_wallet():
 			status_label.visible = false  # Hide "Fetching User Address" message
 			popup_menu.visible = false  # Hide the popup after connection
 	else:
+		# If no result was returned from the JS eval, show failure
 		print("Wallet connection failed.")
 		status_label.text = "Failed."
