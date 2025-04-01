@@ -46,13 +46,13 @@ func create_popup_menu():
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 
 	var button_yes = Button.new()
-	button_yes.text = "Yes"
+	button_yes.text = "boob"
 	button_yes.set_size(Vector2(100, 40))
 	button_yes.position = Vector2(25, 60)
 	button_yes.connect("pressed", self, "_on_connect_wallet_pressed")
 
 	var button_no = Button.new()
-	button_no.text = "No"
+	button_no.text = "ass"
 	button_no.set_size(Vector2(100, 40))
 	button_no.position = Vector2(130, 60)
 	button_no.connect("pressed", self, "_on_close_popup")
