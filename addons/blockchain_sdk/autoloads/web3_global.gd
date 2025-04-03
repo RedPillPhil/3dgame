@@ -12,12 +12,10 @@ func _ready():
 
 # Handle input for showing the popup (press the X key)
 func _input(event):
-	# Detect the key press for wallet connection
 	if event.is_action_pressed("connect_wallet"):  # X key action
 		show_popup_menu()
 
 func create_popup_menu():
-	# Create the popup menu for connecting the wallet
 	popup_menu = Control.new()
 	popup_menu.set_anchors_preset(Control.PRESET_CENTER)
 	popup_menu.set_size(Vector2(300, 150))
@@ -31,7 +29,7 @@ func create_popup_menu():
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 
 	var button_yes = Button.new()
-	button_yes.text = "Yes"
+	button_yes.text = "boob"
 	button_yes.set_anchors_preset(Control.PRESET_CENTER_TOP)
 	button_yes.set_size(Vector2(100, 40))
 	button_yes.position = Vector2(50, 70)
@@ -49,7 +47,7 @@ func create_popup_menu():
 	status_label.add_theme_font_size_override("font_size", 16)
 	status_label.set_anchors_preset(Control.PRESET_CENTER)
 	status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	status_label.visible = false  # Hidden at first
+	status_label.visible = false
 
 	# Wallet address label (hidden at first)
 	wallet_address_label = Label.new()
@@ -68,18 +66,14 @@ func create_popup_menu():
 	add_child(popup_menu)
 
 func show_popup_menu():
-	# Show the popup menu when triggered
 	popup_menu.visible = true
 
 func _on_connect_wallet_pressed():
-	# Show the fetching status immediately after clicking Yes
 	status_label.text = "Fetching User Address..."
 	status_label.visible = true
-	# Start the wallet connection process
 	connect_wallet()
 
 func _on_close_popup():
-	# Hide the popup if user selects No
 	popup_menu.visible = false
 
 func connect_wallet():
@@ -87,54 +81,54 @@ func connect_wallet():
 		print("Wallet connection only available in web builds")
 		return
 	
-	# Define the JavaScript code to connect to MetaMask and fetch the address
+	# JavaScript code to connect to MetaMask and fetch the address
 	var script = """
 		if (typeof ethereum !== 'undefined') {
 			ethereum.request({ method: 'eth_requestAccounts' }).then(accounts => {
 				if (accounts.length > 0) {
-					window.wallet_address_result = accounts[0];  // Store the address in a global variable
+					console.log('MetaMask connected! Wallet address:', accounts[0]);
+					window.wallet_address_result = accounts[0];  // Store address globally
 				} else {
+					console.error('No accounts found in MetaMask.');
 					window.wallet_address_result = 'No account found';
 				}
 			}).catch((error) => {
+				console.error('Error connecting to MetaMask:', error);
 				window.wallet_address_result = 'error';
-				console.error('Error in wallet connection:', error);  // Log any errors in the JS console
 			});
 		} else {
+			console.error('MetaMask is not available. Please install MetaMask.');
 			window.wallet_address_result = 'Ethereum object not found';
-			console.error('MetaMask not available.');
 		}
 	"""
-
-	# Execute the script to request the wallet address
-	print("Executing wallet connection script...")  # Debugging log in Godot
+	
+	# Execute the JavaScript code
 	JavaScriptBridge.eval(script)
 
-	# Wait for the next frame to ensure the script is executed and the result is set
-	await get_tree().idle_frame
-	print("Finished waiting for script execution.")  # Debugging log in Godot
+	# Wait a bit to let the JavaScript execute before fetching the result
+	await get_tree().create_timer(10.5).timeout  
 
-	# Retrieve the wallet address from the JavaScript global variable
-	var result = JavaScriptBridge.eval("window.wallet_address_result")  # Fetch the result from JS
-	print("Received wallet address result from JavaScript:", result)  # Debugging log in Godot
+	# Fetch the wallet address from JavaScript
+	var result = JavaScriptBridge.eval("window.wallet_address_result")
 
-	# Check the result and update the UI accordingly
+	# Debugging: Print the result in Godot's output
+	print("Received wallet address result:", result)
+
 	if result == "error":
-		print("Wallet connection failed.")  # Debugging log in Godot
+		print("Wallet connection failed.")
 		status_label.text = "Failed to connect."
 	elif result == "No account found":
-		print("No account found.")  # Debugging log in Godot
+		print("No account found.")
 		status_label.text = "No account found."
 	elif result == "Ethereum object not found":
-		print("MetaMask is not available.")  # Debugging log in Godot
+		print("MetaMask is not available.")
 		status_label.text = "MetaMask not found."
 	else:
-		# Successfully connected, update the UI
-		print("Wallet connected successfully. Address:", result)  # Debugging log in Godot
+		# Successfully connected, update UI with address
+		print("Wallet connected successfully. Address:", result)
 		wallet_address = result
 		is_wallet_connected = true
-		status_label.text = "Wallet connected"
-		status_label.visible = false  # Hide the "Fetching User Address" status
-		wallet_address_label.text = "Wallet: " + wallet_address
-		wallet_address_label.visible = true  # Show wallet address label
+		status_label.visible = false  # Hide fetching message
+		wallet_address_label.text = "Wallet: " + wallet_address  # Update label
+		wallet_address_label.visible = true  # Show the wallet address label
 		popup_menu.visible = false  # Hide the popup menu
