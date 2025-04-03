@@ -82,43 +82,50 @@ func _on_close_popup():
 	# Hide the popup if user selects No
 	popup_menu.visible = false
 
+var _result: String = ""  # Variable to store wallet address result
+
 func connect_wallet():
 	if not OS.has_feature("web"):
 		print("Wallet connection only available in web builds")
 		return
 	
-	# Start the MetaMask connection request
+	# Define a JavaScript function that calls the callback
 	var script = """
 		ethereum.request({ method: 'eth_requestAccounts' }).then(accounts => {
 			if (accounts.length > 0) {
-				return accounts[0];  // Return the first account
+				// Set the global variable with the wallet address
+				window.wallet_address_result = accounts[0];
 			} else {
-				return 'No account found';  // If no accounts, return a message
+				window.wallet_address_result = 'No account found';
 			}
-		}).catch(() => 'error');  // In case of error, return 'error'
+		}).catch(() => {
+			window.wallet_address_result = 'error';
+		});
 	"""
-	
-	# Call the JavaScript Bridge to execute the MetaMask script
-	var result = JavaScriptBridge.eval(script)
 
-	# Check if we have a valid result
-	if result != null:
-		# If result is "error", show failed message
-		if result == "error":
-			print("Wallet connection failed.")
-			status_label.text = "Failed."
-		elif result == "No account found":
-			print("No account found.")
-			status_label.text = "No account found."
-		else:
-			# Successfully connected
-			wallet_address = result
-			is_wallet_connected = true
-			wallet_address_label.text = "Wallet: " + wallet_address
-			wallet_address_label.visible = true
-			status_label.visible = false  # Hide "Fetching User Address" message
-			popup_menu.visible = false  # Hide the popup after connection
-	else:
-		# If no result was returned from the JS eval, show failure
+	# Execute the script (this will run and set the global wallet_address_result variable)
+	JavaScriptBridge.eval(script)
+
+	# Wait for a frame to ensure the script has executed and the result is set
+	await get_tree().idle_frame  # Wait for the next frame
+
+	# Retrieve the wallet address from the global result variable set by JavaScript
+	_result = JavaScriptBridge.eval("window.wallet_address_result")  # Fetch the result
+
+	# Check the result and update UI accordingly
+	if _result == "error":
 		print("Wallet connection failed.")
 		status_label.text = "Failed."
+	elif _result == "No account found":
+		print("No account found.")
+		status_label.text = "No account found."
+	else:
+		# Successfully connected, update label
+		wallet_address = _result
+		is_wallet_connected = true
+		wallet_address_label.text = "Wallet: " + wallet_address
+		wallet_address_label.visible = true
+		status_label.visible = false  # Hide "Fetching User Address" message
+		popup_menu.visible = false  # Hide the popup after connection
+
+		print("Connected wallet address: " + wallet_address)
