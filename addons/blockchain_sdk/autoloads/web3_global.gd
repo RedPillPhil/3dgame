@@ -123,9 +123,10 @@ func connect_wallet():
 		# Successfully connected, update label
 		wallet_address = _result
 		is_wallet_connected = true
+		status_label.text = "Wallet connected"
+		status_label.visible = false  # Hide the "Fetching User Address" status
 		wallet_address_label.text = "Wallet: " + wallet_address
 		wallet_address_label.visible = true
-		status_label.visible = false  # Hide "Fetching User Address" message
 		popup_menu.visible = false  # Hide the popup after connection
 
 		print("Connected wallet address: " + wallet_address)
